@@ -1,5 +1,5 @@
 [package]
-name = "openmls-test"
+name = "openmls_test"
 version = "0.1.0"
 edition = "2021"
 
@@ -10,3 +10,8 @@ openmls = "0.5.0"
 openmls_rust_crypto = "0.2.0"
 openmls_basic_credential = "0.2.0"
 anyhow = "1.0.81"
+criterion = "0.5.1"
+
+[[bench]]
+name = "add"
+harness = false

@@ -2,7 +2,7 @@ use anyhow::{anyhow, Result};
 use openmls::prelude::*;
 use openmls_basic_credential::SignatureKeyPair;
 
-pub(crate) fn make_credential(
+pub fn make_credential(
     ciphersuite: &Ciphersuite,
     provider: &impl OpenMlsCryptoProvider,
     name: String,
