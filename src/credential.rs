@@ -22,7 +22,7 @@ pub fn make_credential(
     Ok((credential_with_key, sign_keys))
 }
 
-pub(crate) fn create_keypackage(
+pub fn create_keypackage(
     ciphersuite: Ciphersuite,
     provider: &impl OpenMlsCryptoProvider,
     credential_with_key: CredentialWithKey,
