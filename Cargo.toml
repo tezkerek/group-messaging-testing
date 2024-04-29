@@ -9,9 +9,19 @@ edition = "2021"
 openmls = "0.5.0"
 openmls_rust_crypto = "0.2.0"
 openmls_basic_credential = "0.2.0"
+double-ratchet-2 = "0.4.0-pre.2"
+x25519-dalek = { version = "2.0.0-pre.1", features = ["serde", "static_secrets", "getrandom"] }
 anyhow = "1.0.81"
 criterion = "0.5.1"
+rand_chacha = "0.3.1"
+
+[patch.crates-io]
+double-ratchet-2 = { path = "./double-ratchet-2" }
 
 [[bench]]
 name = "add"
+harness = false
+
+[[bench]]
+name = "message"
 harness = false

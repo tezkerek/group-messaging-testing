@@ -42,6 +42,7 @@ impl KeyService {
         Ok(())
     }
 
-    // pub fn iter(&self) { self.packages.iter() }
     pub fn packages(&self) -> &HashMap<Vec<u8>, KeyPackage> { &self.packages }
+
+    pub fn all_packages(&self) -> Vec<KeyPackage> { self.packages().values().cloned().collect() }
 }
