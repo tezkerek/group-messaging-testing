@@ -22,7 +22,7 @@ pub struct BenchConfig {
 
 impl Default for BenchConfig {
     fn default() -> Self {
-        let ciphersuite = Ciphersuite::MLS_128_DHKEMP256_AES128GCM_SHA256_P256;
+        let ciphersuite = Ciphersuite::MLS_128_DHKEMX25519_AES128GCM_SHA256_Ed25519;
         let provider = OpenMlsRustCrypto::default();
         let group_config = MlsGroupConfig::builder()
             .crypto_config(CryptoConfig::with_default_version(ciphersuite))
@@ -50,13 +50,35 @@ pub fn create_group(bench_config: &BenchConfig) -> MlsGroup {
     .expect("Failed to create group")
 }
 
+pub fn create_bare_group_with_members(
+    bench_config: &BenchConfig,
+    key_service: &KeyService,
+) -> MlsGroup {
+    let members = key_service.all_data();
+    let mut local_group = create_group(bench_config);
+    let key_packages: Vec<_> = members.into_iter().map(|m| m.key_package.clone()).collect();
+
+    let _ = local_group
+        .add_members(
+            &bench_config.provider,
+            &bench_config.self_signer,
+            &key_packages,
+        )
+        .expect("Failed to add members");
+
+    local_group
+        .merge_pending_commit(&bench_config.provider)
+        .expect("Failed to merge pending commits");
+    local_group
+}
+
 pub fn create_group_with_members(bench_config: &BenchConfig, key_service: &KeyService) -> MlsGroup {
     let members = key_service.all_data();
     let mut local_group = create_group(bench_config);
 
     // Mend tree by updating each leaf
     for (i, member) in members.iter().enumerate() {
-        let (message_out, welcome_out, group_info) = local_group
+        let (message_out, welcome_out, _) = local_group
             .add_members(
                 &bench_config.provider,
                 &bench_config.self_signer,
@@ -89,9 +111,6 @@ pub fn create_group_with_members(bench_config: &BenchConfig, key_service: &KeySe
             let (update_out, _, _) = remote_group
                 .self_update(&bench_config.provider, &member.signature_pair)
                 .expect("Failed to update remote leaf");
-            //remote_group
-            //    .merge_pending_commit(&bench_config.provider)
-            //    .expect("Failed to merge pending commits");
 
             let update_in: MlsMessageInBody = MlsMessageIn::tls_deserialize_exact(
                 update_out
@@ -122,17 +141,6 @@ pub fn create_group_with_members(bench_config: &BenchConfig, key_service: &KeySe
 
         eprint!("\rMember {} done", i);
     }
-    eprintln!();
-
-    //local_group
-    //    .commit_to_pending_proposals(&bench_config.provider, &bench_config.self_signer)
-    //    .expect("Commit to update proposals");
-    //
-    //local_group
-    //    .merge_pending_commit(&bench_config.provider)
-    //    .expect("Failed to merge pending commits");
-
-    //println!("Done with mending group");
 
     local_group
 }

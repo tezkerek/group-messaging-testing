@@ -35,7 +35,7 @@ fn add_member_to_existing_group(c: &mut Criterion) {
         .measurement_time(Duration::from_secs(1))
         .sample_size(10)
         .sampling_mode(SamplingMode::Flat);
-    for count in [1, 100, 1024] {
+    for count in [2, 100, 1024] {
         bench_group.bench_with_input(
             BenchmarkId::new("TreeKEM", count),
             &count,

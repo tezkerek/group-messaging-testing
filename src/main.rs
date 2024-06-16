@@ -10,8 +10,6 @@ use openmls_test::{
 mod credential;
 mod key_service;
 
-static CIPHERSUITE: Ciphersuite = Ciphersuite::MLS_128_DHKEMP256_AES128GCM_SHA256_P256;
-
 fn join_from_welcome(
     provider: &OpenMlsRustCrypto,
     welcome_out: &MlsMessageOut,

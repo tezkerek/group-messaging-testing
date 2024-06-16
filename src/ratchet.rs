@@ -31,15 +31,6 @@ impl RatchetGroup {
             .map(|_| StaticSecret::random().to_bytes())
             .collect();
         Self::new_with_members(secrets)
-        //Self {
-        //    other_ratchets: secrets
-        //        .into_iter()
-        //        .map(|secret| (secret.clone(),
-        // Ratchet::<StaticSecret>::init_bob(secret).1))
-        //        .map(|(secret, bob_pk)|
-        // Ratchet::<StaticSecret>::init_alice(secret, bob_pk))
-        //        .collect(),
-        //}
     }
 
     pub fn encrypt_message(&mut self, msg: &[u8]) -> Vec<(Header<PublicKey>, Vec<u8>, [u8; 12])> {

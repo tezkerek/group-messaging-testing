@@ -23,14 +23,6 @@ impl KeyService {
         }
     }
 
-    //pub fn get_by_credential(&self, credential: &Credential) ->
-    // Option<&KeyPackage> {    self.packages.get(credential.identity())
-    //}
-    //
-    //pub fn publish(&mut self, identity: Vec<u8>, key_package: KeyPackage) {
-    //    self.packages.insert(identity, key_package);
-    //}
-
     pub fn generate(
         &mut self,
         ciphersuite: &Ciphersuite,
@@ -47,7 +39,7 @@ impl KeyService {
                 new_credential.clone(),
                 &new_signer,
             )?;
-            //self.publish(identity.into(), key_package);
+
             let data = MemberData {
                 key_package,
                 credential: new_credential,
@@ -59,7 +51,5 @@ impl KeyService {
         Ok(())
     }
 
-    //pub fn packages(&self) -> &HashMap<Vec<u8>, KeyPackage> { &self.packages }
-    //
     pub fn all_data(&self) -> Vec<&MemberData> { self.members.values().collect() }
 }
