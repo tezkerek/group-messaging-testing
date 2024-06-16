@@ -12,30 +12,19 @@ use openmls_test::ratchet::RatchetGroup;
 criterion_group! {
     name = benches;
     config = Criterion::default().measurement_time(Duration::from_secs(1)).sample_size(10);
-    targets = add_member_to_existing_group
+    targets = remove_member
 }
 criterion_main!(benches);
 
-fn quick_keypackage(
-    ciphersuite: &Ciphersuite,
-    provider: &impl OpenMlsCryptoProvider,
-    identity: String,
-) -> Result<KeyPackage> {
-    let (new_credential, new_signer) = make_credential(ciphersuite, provider, identity.clone())?;
-    let key_package =
-        create_keypackage(ciphersuite.clone(), provider, new_credential, &new_signer)?;
-    Ok(key_package)
-}
-
-fn add_member_to_existing_group(c: &mut Criterion) {
+fn remove_member(c: &mut Criterion) {
     let config = BenchConfig::default();
 
-    let mut bench_group = c.benchmark_group("add_one");
+    let mut bench_group = c.benchmark_group("remove");
     bench_group
         .measurement_time(Duration::from_secs(1))
         .sample_size(10)
         .sampling_mode(SamplingMode::Flat);
-    for count in [1, 100, 1024] {
+    for count in [2, 100, 1024] {
         bench_group.bench_with_input(
             BenchmarkId::new("TreeKEM", count),
             &count,
@@ -48,18 +37,19 @@ fn add_member_to_existing_group(c: &mut Criterion) {
                             .expect("Failed to populate KeyService");
 
                         let mut mls_group = create_group_with_members(&config, &key_service);
-                        let new_package =
-                            quick_keypackage(&config.ciphersuite, &config.provider, "Alice".into())
-                                .expect("Failed to create KeyPackage");
-                        (mls_group, new_package)
+                        mls_group
                     },
-                    |(mut group, new_package)| {
+                    |mut group| {
                         group
-                            .add_members(&config.provider, &config.self_signer, &[new_package])
-                            .expect("Failed to add members");
+                            .remove_members(
+                                &config.provider,
+                                &config.self_signer,
+                                &[LeafNodeIndex::new(1)],
+                            )
+                            .expect("Failed to remove member");
                         group
                             .merge_pending_commit(&config.provider)
-                            .expect("Failed to commit add");
+                            .expect("Failed to commit the remove");
                     },
                     BatchSize::LargeInput,
                 );
@@ -69,9 +59,9 @@ fn add_member_to_existing_group(c: &mut Criterion) {
             bencher.iter_batched(
                 || RatchetGroup::with_generated_members(count),
                 |mut ratchet_group| {
-                    ratchet_group.add_member();
-                    let add_instruction = [1u8; 512];
-                    ratchet_group.encrypt_message(&add_instruction);
+                    ratchet_group.remove_member();
+                    let remove_instruction = [1u8; 512];
+                    ratchet_group.encrypt_message(&remove_instruction);
                 },
                 BatchSize::LargeInput,
             );
@@ -80,9 +70,9 @@ fn add_member_to_existing_group(c: &mut Criterion) {
             bencher.iter_batched(
                 || RatchetGroup::with_generated_members(count),
                 |mut ratchet_group| {
-                    ratchet_group.add_member();
-                    let add_instruction = [1u8; 512];
-                    ratchet_group.encrypt_message_efficiently(&add_instruction);
+                    ratchet_group.remove_member();
+                    let remove_instruction = [1u8; 512];
+                    ratchet_group.encrypt_message_efficiently(&remove_instruction);
                 },
                 BatchSize::LargeInput,
             );

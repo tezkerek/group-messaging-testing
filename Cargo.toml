@@ -23,5 +23,9 @@ name = "add"
 harness = false
 
 [[bench]]
+name = "remove"
+harness = false
+
+[[bench]]
 name = "message"
 harness = false

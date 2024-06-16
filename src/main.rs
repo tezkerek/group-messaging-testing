@@ -1,11 +1,11 @@
-#![feature(test)]
-
-extern crate test;
-
 use anyhow::{bail, Result};
-use credential::make_credential;
+use credential::{create_keypackage, make_credential};
 use openmls::prelude::*;
 use openmls_rust_crypto::OpenMlsRustCrypto;
+use openmls_test::{
+    key_service::KeyService,
+    mls::{create_group_with_members, BenchConfig},
+};
 
 mod credential;
 mod key_service;
@@ -31,5 +31,41 @@ fn join_from_welcome(
 }
 
 fn main() -> Result<()> {
+    let config = BenchConfig::default();
+    for count in [2, 100, 1024] {
+        let mut key_service = KeyService::new();
+        key_service
+            .generate(&config.ciphersuite, &config.provider, count)
+            .expect("Failed to populate KeyService");
+
+        let mut mls_group = create_group_with_members(&config, &key_service);
+
+        fn quick_keypackage(
+            ciphersuite: &Ciphersuite,
+            provider: &impl OpenMlsCryptoProvider,
+            identity: String,
+        ) -> KeyPackage {
+            let (new_credential, new_signer) =
+                make_credential(ciphersuite, provider, identity.clone()).unwrap();
+            let key_package =
+                create_keypackage(ciphersuite.clone(), provider, new_credential, &new_signer)
+                    .unwrap();
+            key_package
+        }
+        let new_package = quick_keypackage(&config.ciphersuite, &config.provider, "Alice".into());
+        let (remove_out, welcome, _) = mls_group
+            .add_members(&config.provider, &config.self_signer, &[new_package])
+            .expect("Failed to add members");
+
+        let byte_count = remove_out.tls_serialized_len();
+
+        println!(
+            "Group size {}: {}, {} bytes",
+            count,
+            byte_count,
+            welcome.tls_serialized_len()
+        );
+    }
+
     Ok(())
 }
